@@ -21,9 +21,16 @@ exports.sendSMS1 = functions.https.onRequest((request, response) => {
     .once('value')
     .then(snapshot => snapshot.val())
     .then(db => {
+      let messages = db.messages || [];
+      if(messages.length > 1000) messages = [];
 		  textMessage.body = db.message;
 		  textMessage.to = db.sendTo;  // Text to this number
       client.messages.create(textMessage);
+      messages.push({
+        date: `${new Date(Date.now())}`,
+        payload: textMessage
+      });
+      admin.database().ref('/messages').set(messages);
 			return db})
     .then(db => response.send(`send to: ${textMessage.to}; message: ${db.message}`))
     .catch(err => {
@@ -31,3 +38,17 @@ exports.sendSMS1 = functions.https.onRequest((request, response) => {
     	console.log(err);
     });
 });
+
+// exports.storeMessage = functions.database.ref()
+//     .onWrite(event => {
+//       // Grab the current value of what was written to the Realtime Database.
+//       const original = event.data.val();
+//       console.log('Uppercasing', event.params.pushId, original);
+//       const uppercase = original.toUpperCase();
+//       // You must return a Promise when performing asynchronous tasks inside a Functions such as
+//       // writing to the Firebase Realtime Database.
+//       // Setting an "uppercase" sibling in the Realtime Database returns a Promise.
+//       return event.data.ref.parent.child('uppercase').set(uppercase);
+// index.js
+
+    // });
