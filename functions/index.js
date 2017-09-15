@@ -21,16 +21,16 @@ exports.sendSMS1 = functions.https.onRequest((request, response) => {
     .once('value')
     .then(snapshot => snapshot.val())
     .then(db => {
-      let messages = db.messages || [];
-      if(messages.length > 1000) messages = [];
+      let messagesStore = db.messages || [];
+      if(messagesStore.length > 1000) messagesStore = [];
 		  textMessage.body = db.message;
 		  textMessage.to = db.sendTo;  // Text to this number
       client.messages.create(textMessage);
-      messages.push({
+      messagesStore.push({
         date: `${new Date(Date.now())}`,
         payload: textMessage
       });
-      admin.database().ref('/messages').set(messages);
+      admin.database().ref('/messages').set(messagesStore);
 			return db})
     .then(db => response.send(`send to: ${textMessage.to}; message: ${db.message}`))
     .catch(err => {
